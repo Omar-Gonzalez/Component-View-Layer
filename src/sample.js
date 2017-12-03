@@ -11,7 +11,7 @@
  */
 
 let jumbo = new Layer.View({
-    GET: "../sample-data/jumbotron.html",
+    GET: "sample-data/jumbotron.html",
     sel: ".jumbo"
 });
 
