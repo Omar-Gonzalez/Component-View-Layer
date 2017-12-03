@@ -39,7 +39,7 @@ let usage = new Layer.View({
  });`,
         ajaxInit:`
 let jumbo = new Layer.View({
-    GET: "../sample-data/jumbotron.html",
+    GET: "sample-data/jumbotron.html",
     sel: ".jumbo"
 });
         `
@@ -68,7 +68,7 @@ let jumbo = new Layer.View({
 */
 
 let cat = new Layer.View({
-    GET:"../sample-data/cat.json",
+    GET:"sample-data/cat.json",
     html: `<h4>Cat Profile</h4>
             <img src="{{ imgURL }}">
             <ul>
@@ -84,7 +84,7 @@ let catSource = new Layer.View({
     html:`
 <pre><xmp>
 let cat = new Layer.View({
-    GET:"../sample-data/cat.json",
+    GET:"sample-data/cat.json",
     html: \`<h4>Cat Profile</h4>
             <img src="{{ imgURL }}">
             <ul>

@@ -386,7 +386,7 @@ var usage = new Layer.View({
     props: {
         time: new Date().toLocaleString(),
         markupInit: "\n let hi = new Layer.View({\n     props:{name:\"dude\"}\n     html: \"&lth1&gtHello {{ name }}&lt/h1&gt\",\n     sel: \"#my-div\"\n });",
-        ajaxInit: "\nlet jumbo = new Layer.View({\n    GET: \"../sample-data/jumbotron.html\",\n    sel: \".jumbo\"\n});\n        "
+        ajaxInit: "\nlet jumbo = new Layer.View({\n    GET: \"sample-data/jumbotron.html\",\n    sel: \".jumbo\"\n});\n        "
     },
     html: "<div class=\"container-fluid\">\n            <div class=\"row\">\n                <div class=\"col-md-6 col-md-offset-3\">\n                    <h4>Features & Usage</h4>\n                    <p>CVL can handle dynamic data via interpolation, such as:</p>\n                    <p>Page loaded on: <strong>{{ time }}</strong> </p>\n                    <p>You can manage object state with the <code>View.props</code> object and related methods:</p>\n                    <p><code>component.setProps({name:\"Omar Gonzalez\"});</code></p>\n                    <p>A view component can be initialized with markup :</p>\n                    <p><pre>{{ markupInit }}</pre></p>\n                    <p>Alternately you can initialize it with an AJAX call:\n                    <p><pre>{{ ajaxInit }}</pre></p>\n                    <p>It also plays nice with JSON data :</p>\n                </div>\n            </div>\n        </div>",
     sel: '.usage'
@@ -397,13 +397,13 @@ var usage = new Layer.View({
 */
 
 var cat = new Layer.View({
-    GET: "../sample-data/cat.json",
+    GET: "sample-data/cat.json",
     html: "<h4>Cat Profile</h4>\n            <img src=\"{{\xA0imgURL }}\">\n            <ul>\n                <li>Name: {{ name }}</li>\n                <li>Age: {{ age }}</li>\n                <li>Color: {{ color }}</li>\n                <li>Bio: {{ bio }}</li>\n            </ul>",
     sel: ".cat"
 });
 
 var catSource = new Layer.View({
-    html: "\n<pre><xmp>\nlet cat = new Layer.View({\n    GET:\"../sample-data/cat.json\",\n    html: `<h4>Cat Profile</h4>\n            <img src=\"{{\xA0imgURL }}\">\n            <ul>\n                <li>Name: {{ name }}</li>\n                <li>Age: {{ age }}</li>\n                <li>Color: {{ color }}</li>\n                <li>Bio: {{ bio }}</li>\n            </ul>`,\nsel:\".cat\"\n});</xmp></pre>",
+    html: "\n<pre><xmp>\nlet cat = new Layer.View({\n    GET:\"sample-data/cat.json\",\n    html: `<h4>Cat Profile</h4>\n            <img src=\"{{\xA0imgURL }}\">\n            <ul>\n                <li>Name: {{ name }}</li>\n                <li>Age: {{ age }}</li>\n                <li>Color: {{ color }}</li>\n                <li>Bio: {{ bio }}</li>\n            </ul>`,\nsel:\".cat\"\n});</xmp></pre>",
     sel: ".cat-src"
 });
 
