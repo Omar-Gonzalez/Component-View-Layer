@@ -70,6 +70,19 @@ Layer.Core = class {
         return htmlArray.join("");
     }
 
+    static resetProps(newProps, currentProps) {
+        if (!currentProps) {
+            return newProps;
+        }
+
+        for (let prop in newProps) {
+            if (currentProps.hasOwnProperty(prop)) {
+                currentProps[prop] = newProps[prop];
+            }
+        }
+        return currentProps;
+    }
+
     /**
      * Private / Utility Methods
      */
@@ -167,7 +180,7 @@ Layer.View = class View extends Layer.Core {
     }
 
     update(avoidRecursion) {
-        
+
         if (this.method === "GET" && avoidRecursion === undefined) {
             Layer.HTTP.GET(this._endpoint, this);
         }
@@ -249,8 +262,8 @@ Layer.View = class View extends Layer.Core {
         this.update();
     }
 
-    setProps(props) {
-        this._props = props;
+    setProps(newProps) {
+        this._props = Layer.Core.resetProps(newProps, this._props);
         this.update(true);
     }
 

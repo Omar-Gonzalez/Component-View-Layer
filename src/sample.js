@@ -143,4 +143,4 @@ let foot = new Layer.View({
             </div>
         </div>`,
     sel:'.foot'
-})
+});

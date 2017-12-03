@@ -121,6 +121,20 @@ Layer.Core = function () {
 
             return htmlArray.join("");
         }
+    }, {
+        key: "resetProps",
+        value: function resetProps(newProps, currentProps) {
+            if (!currentProps) {
+                return newProps;
+            }
+
+            for (var prop in newProps) {
+                if (currentProps.hasOwnProperty(prop)) {
+                    currentProps[prop] = newProps[prop];
+                }
+            }
+            return currentProps;
+        }
     }]);
 
     return _class;
@@ -283,8 +297,8 @@ Layer.View = function (_Layer$Core) {
         }
     }, {
         key: "setProps",
-        value: function setProps(props) {
-            this._props = props;
+        value: function setProps(newProps) {
+            this._props = Layer.Core.resetProps(newProps, this._props);
             this.update(true);
         }
     }, {
