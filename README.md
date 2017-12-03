@@ -1,2 +1,8 @@
 # Component-View-Layer
-ES6 extendable view component for state managment
+##CVL is a ES6 rehusable view component made by Omar Gonzalez (WIP)
+
+* Example, Usage & Features in [live demo here! ](https://omar-gonzalez.github.io/Component-View-Layer/)
+
+## License
+
+* Omar Gonzalez &copy; 2017 - Code released under the MIT license.
