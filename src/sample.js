@@ -20,6 +20,7 @@ let jumbo = new Layer.View({
  */
 
 jumbo.setProps({
+    title: "Component View Layer",
     author: "Omar Gonzalez"
 });
 
