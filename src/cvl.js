@@ -9,6 +9,40 @@
 let Layer = window.Layer || {};
 
 /**
+ * Logger Class 
+ * Store useful logs and errors
+ * Save logs : Layer.logs.save(log)
+ * Print stored logs : Layer.logs.print
+ * Dump log array : layer.logs.dump
+ */
+
+Layer.Logger = class {
+    constructor() {
+        this.logs = [];
+    }
+
+    get print() {
+        for (let log of this.logs) {
+            console.log("CVL:Log - " + log);
+        }
+    }
+
+    save(log) {
+        this.logs.push(log);
+    }
+
+    get dump() {
+        return this.logs;
+    }
+
+    delete() {
+        this.logs = [];
+    }
+};
+
+Layer.logs = new Layer.Logger();
+
+/**
  * Core Static Utility Functions
  * Core static intpl - parse Interpolation
  * Reconciliates component props with template markup 
@@ -45,7 +79,7 @@ Layer.Core = class {
                             values[i] = props[property];
                         }
                     } catch (e) {
-                        //type error, but whatevs
+                        //May yield type error, but whatevs
                     }
                 }
             }
@@ -82,35 +116,29 @@ Layer.Core = class {
         }
         return currentProps;
     }
-
-    /**
-     * Private / Utility Methods
-     */
-
-    _saveLog(log) {
-        this._logs.push(log);
-    }
-
-    get logs() {
-        for (let log of this._logs) {
-            console.log(log);
-        }
-    }
 };
 
+/**
+ * AJAX Static Methods
+ * Component (internal) related AJAX Calls 
+ * & Convinience (external) AJAX methdos 
+ */
 
 Layer.HTTP = class {
-    /**
-     * AJAX Static Methods
-     */
     constructor() {}
 
-    static GET(url, cb) {
+    /**
+     * Private HTTP._GET() Takes component dependency injection
+     * to fetch component related data
+     */
+
+    static _GET(url, cb) {
         jQuery.ajax({
                 url: url,
                 type: "GET",
             })
             .done(function(data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
                 if (jqXHR.responseJSON) {
                     cb.setProps(jqXHR.responseJSON);
                 } else {
@@ -118,10 +146,37 @@ Layer.HTTP = class {
                 }
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
-                console.log("jQuery.AJAX fetch error : " + errorThrown);
+                Layer.logs.save("AJAX get error : " + errorThrown);
             })
             .always(function() {
                 /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
+            });
+    }
+
+    /**
+     * Public HTTP.GET() - manualy fetch data
+     * @param : url 
+     * @param : cb()
+     * return data & error in cb()
+     */
+
+    static GET(url, cb) {
+        jQuery.ajax({
+                url: url,
+                type: "GET",
+            })
+            .done(function(data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
+                return cb(data);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Layer.logs.save("AJAX get error : " + errorThrown);
+                return errorThrown;
+            })
+            .always(function() {
+                /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
             });
     }
 };
@@ -147,6 +202,10 @@ Layer.View = class View extends Layer.Core {
         if (data.GET) {
             this._method = "GET";
             this._endpoint = data.GET;
+        }
+
+        if ($(data.sel).length === 0) {
+            return;
         }
 
         this._selector = data.sel;
@@ -182,7 +241,7 @@ Layer.View = class View extends Layer.Core {
     update(avoidRecursion) {
 
         if (this.method === "GET" && avoidRecursion === undefined) {
-            Layer.HTTP.GET(this._endpoint, this);
+            Layer.HTTP._GET(this._endpoint, this);
         }
 
         $(this._elements).html(Layer.Core.intpl(this._templateHtml, this._props) ? Layer.Core.intpl(this._templateHtml, this._props) : this._html);

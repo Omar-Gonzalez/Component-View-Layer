@@ -42,9 +42,7 @@ let usage = new Layer.View({
 let jumbo = new Layer.View({
     GET: "sample-data/jumbotron.html",
     sel: ".jumbo"
-});
-        `
-    },
+});`},
     html: `<div class="container-fluid">
             <div class="row">
                 <div class="col-md-6 col-md-offset-3">
@@ -94,7 +92,7 @@ let cat = new Layer.View({
                 <li>Color: {{ color }}</li>
                 <li>Bio: {{ bio }}</li>
             </ul>\`,
-sel:".cat"
+    sel:".cat"
 });</xmp></pre>`,
     sel:".cat-src"
 });
@@ -144,4 +142,9 @@ let foot = new Layer.View({
             </div>
         </div>`,
     sel:'.foot'
+});
+
+let test = new Layer.View({
+    html:"hey",
+    sel:".nooo"
 });

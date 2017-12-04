@@ -19,39 +19,42 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Layer = window.Layer || {};
 
 /**
- * Core Static Utility Functions
- * Core static intpl - parse Interpolation
- * Reconciliates component props with template markup 
+ * Logger Class 
+ * Store useful logs and errors
+ * Save logs : Layer.logs.save(log)
+ * Print stored logs : Layer.logs.print
+ * Dump log array : layer.logs.dump
  */
 
-Layer.Core = function () {
+Layer.Logger = function () {
     function _class() {
         _classCallCheck(this, _class);
+
+        this.logs = [];
     }
 
     _createClass(_class, [{
-        key: "_saveLog",
-
-
-        /**
-         * Private / Utility Methods
-         */
-
-        value: function _saveLog(log) {
-            this._logs.push(log);
+        key: "save",
+        value: function save(log) {
+            this.logs.push(log);
         }
     }, {
-        key: "logs",
+        key: "delete",
+        value: function _delete() {
+            this.logs = [];
+        }
+    }, {
+        key: "print",
         get: function get() {
             var _iteratorNormalCompletion = true;
             var _didIteratorError = false;
             var _iteratorError = undefined;
 
             try {
-                for (var _iterator = this._logs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                for (var _iterator = this.logs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                     var log = _step.value;
 
-                    console.log(log);
+                    console.log("CVL:Log - " + log);
                 }
             } catch (err) {
                 _didIteratorError = true;
@@ -68,7 +71,30 @@ Layer.Core = function () {
                 }
             }
         }
-    }], [{
+    }, {
+        key: "dump",
+        get: function get() {
+            return this.logs;
+        }
+    }]);
+
+    return _class;
+}();
+
+Layer.logs = new Layer.Logger();
+
+/**
+ * Core Static Utility Functions
+ * Core static intpl - parse Interpolation
+ * Reconciliates component props with template markup 
+ */
+
+Layer.Core = function () {
+    function _class2() {
+        _classCallCheck(this, _class2);
+    }
+
+    _createClass(_class2, null, [{
         key: "intpl",
         value: function intpl(template, props) {
             if (!template || !props) {
@@ -97,7 +123,7 @@ Layer.Core = function () {
                                 values[_i] = props[property];
                             }
                         } catch (e) {
-                            //type error, but whatevs
+                            //May yield type error, but whatevs
                         }
                     }
                 }
@@ -137,38 +163,73 @@ Layer.Core = function () {
         }
     }]);
 
-    return _class;
+    return _class2;
 }();
 
+/**
+ * AJAX Static Methods
+ * Component (internal) related AJAX Calls 
+ * & Convinience (external) AJAX methdos 
+ */
+
 Layer.HTTP = function () {
-    /**
-     * AJAX Static Methods
-     */
-    function _class2() {
-        _classCallCheck(this, _class2);
+    function _class3() {
+        _classCallCheck(this, _class3);
     }
 
-    _createClass(_class2, null, [{
-        key: "GET",
-        value: function GET(url, cb) {
+    /**
+     * Private HTTP._GET() Takes component dependency injection
+     * to fetch component related data
+     */
+
+    _createClass(_class3, null, [{
+        key: "_GET",
+        value: function _GET(url, cb) {
             jQuery.ajax({
                 url: url,
                 type: "GET"
             }).done(function (data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
                 if (jqXHR.responseJSON) {
                     cb.setProps(jqXHR.responseJSON);
                 } else {
                     cb.setHtml(data);
                 }
             }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.log("jQuery.AJAX fetch error : " + errorThrown);
+                Layer.logs.save("AJAX get error : " + errorThrown);
             }).always(function () {
                 /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
+            });
+        }
+
+        /**
+         * Public HTTP.GET() - manualy fetch data
+         * @param : url 
+         * @param : cb()
+         * return data & error in cb()
+         */
+
+    }, {
+        key: "GET",
+        value: function GET(url, cb) {
+            jQuery.ajax({
+                url: url,
+                type: "GET"
+            }).done(function (data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
+                return cb(data);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                Layer.logs.save("AJAX get error : " + errorThrown);
+                return errorThrown;
+            }).always(function () {
+                /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
             });
         }
     }]);
 
-    return _class2;
+    return _class3;
 }();
 
 /**
@@ -196,6 +257,10 @@ Layer.View = function (_Layer$Core) {
         if (data.GET) {
             _this._method = "GET";
             _this._endpoint = data.GET;
+        }
+
+        if ($(data.sel).length === 0) {
+            return _possibleConstructorReturn(_this);
         }
 
         _this._selector = data.sel;
@@ -235,7 +300,7 @@ Layer.View = function (_Layer$Core) {
         value: function update(avoidRecursion) {
 
             if (this.method === "GET" && avoidRecursion === undefined) {
-                Layer.HTTP.GET(this._endpoint, this);
+                Layer.HTTP._GET(this._endpoint, this);
             }
 
             $(this._elements).html(Layer.Core.intpl(this._templateHtml, this._props) ? Layer.Core.intpl(this._templateHtml, this._props) : this._html);
@@ -401,8 +466,7 @@ var usage = new Layer.View({
     props: {
         time: new Date().toLocaleString(),
         markupInit: "\n let hi = new Layer.View({\n     props:{name:\"dude\"}\n     html: \"&lth1&gtHello {{ name }}&lt/h1&gt\",\n     sel: \"#my-div\"\n });",
-        ajaxInit: "\nlet jumbo = new Layer.View({\n    GET: \"sample-data/jumbotron.html\",\n    sel: \".jumbo\"\n});\n        "
-    },
+        ajaxInit: "\nlet jumbo = new Layer.View({\n    GET: \"sample-data/jumbotron.html\",\n    sel: \".jumbo\"\n});" },
     html: "<div class=\"container-fluid\">\n            <div class=\"row\">\n                <div class=\"col-md-6 col-md-offset-3\">\n                    <h4>Features & Usage</h4>\n                    <p>CVL can handle dynamic data via interpolation, such as:</p>\n                    <p>Page loaded on: <strong>{{ time }}</strong> </p>\n                    <p>You can manage object state with the <code>View.props</code> object and related methods:</p>\n                    <p><code>component.setProps({name:\"Omar Gonzalez\"});</code></p>\n                    <p>A view component can be initialized with markup :</p>\n                    <p><pre>{{ markupInit }}</pre></p>\n                    <p>Alternately you can initialize it with an AJAX call:\n                    <p><pre>{{ ajaxInit }}</pre></p>\n                    <p>It also plays nice with JSON data :</p>\n                </div>\n            </div>\n        </div>",
     sel: '.usage'
 });
@@ -418,7 +482,7 @@ var cat = new Layer.View({
 });
 
 var catSource = new Layer.View({
-    html: "\n<pre><xmp>\nlet cat = new Layer.View({\n    GET:\"sample-data/cat.json\",\n    html: `<h4>Cat Profile</h4>\n            <img src=\"{{\xA0imgURL }}\">\n            <ul>\n                <li>Name: {{ name }}</li>\n                <li>Age: {{ age }}</li>\n                <li>Color: {{ color }}</li>\n                <li>Bio: {{ bio }}</li>\n            </ul>`,\nsel:\".cat\"\n});</xmp></pre>",
+    html: "\n<pre><xmp>\nlet cat = new Layer.View({\n    GET:\"sample-data/cat.json\",\n    html: `<h4>Cat Profile</h4>\n            <img src=\"{{\xA0imgURL }}\">\n            <ul>\n                <li>Name: {{ name }}</li>\n                <li>Age: {{ age }}</li>\n                <li>Color: {{ color }}</li>\n                <li>Bio: {{ bio }}</li>\n            </ul>`,\n    sel:\".cat\"\n});</xmp></pre>",
     sel: ".cat-src"
 });
 
@@ -435,5 +499,10 @@ var dep = new Layer.View({
 var foot = new Layer.View({
     html: "<div class=\"container\">\n            <div class=\"row\">\n                <hr>\n                <p> Component View Layer, MIT License * Copyright (c) 2017 <a href=\"https://github.com/Omar-Gonzalez\">Omar Gonzalez</a></p><br>\n            </div>\n        </div>",
     sel: '.foot'
+});
+
+var test = new Layer.View({
+    html: "hey",
+    sel: ".nooo"
 });
 //# sourceMappingURL=cvl.build.js.map
