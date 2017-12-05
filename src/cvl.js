@@ -205,6 +205,7 @@ Layer.View = class View extends Layer.Core {
         }
 
         if ($(data.sel).length === 0) {
+            Layer.logs.save("Unable to retrieve attach reference with : " + data.sel);
             return;
         }
 

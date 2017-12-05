@@ -260,6 +260,7 @@ Layer.View = function (_Layer$Core) {
         }
 
         if ($(data.sel).length === 0) {
+            Layer.logs.save("Unable to retrieve attach reference with : " + data.sel);
             return _possibleConstructorReturn(_this);
         }
 
@@ -499,10 +500,5 @@ var dep = new Layer.View({
 var foot = new Layer.View({
     html: "<div class=\"container\">\n            <div class=\"row\">\n                <hr>\n                <p> Component View Layer, MIT License * Copyright (c) 2017 <a href=\"https://github.com/Omar-Gonzalez\">Omar Gonzalez</a></p><br>\n            </div>\n        </div>",
     sel: '.foot'
-});
-
-var test = new Layer.View({
-    html: "hey",
-    sel: ".nooo"
 });
 //# sourceMappingURL=cvl.build.js.map

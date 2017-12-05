@@ -143,8 +143,3 @@ let foot = new Layer.View({
         </div>`,
     sel:'.foot'
 });
-
-let test = new Layer.View({
-    html:"hey",
-    sel:".nooo"
-});
