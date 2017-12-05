@@ -9,57 +9,25 @@
 let Layer = window.Layer || {};
 
 /**
- * Logger Class 
- * Store useful logs and errors
- * Save logs : Layer.logs.save(log)
- * Print stored logs : Layer.logs.print
- * Dump log array : layer.logs.dump
- */
-
-Layer.Logger = class {
-    constructor() {
-        this.logs = [];
-    }
-
-    get print() {
-        for (let log of this.logs) {
-            console.log("CVL:Log - " + log);
-        }
-    }
-
-    save(log) {
-        this.logs.push(log);
-    }
-
-    get dump() {
-        return this.logs;
-    }
-
-    delete() {
-        this.logs = [];
-    }
-};
-
-Layer.logs = new Layer.Logger();
-
-/**
- * Core Static Utility Functions
- * Core static intpl - parse Interpolation
+ * Core Class - Handles interpolation and props refresh/state
+ * Core intpl - parse Interpolation
  * Reconciliates component props with template markup 
+ * resetProps - matches template tags with new props
  */
 
 Layer.Core = class {
 
     constructor() {}
 
-    static intpl(template, props) {
-        if (!template || !props) {
+    intpl() {
+        if (!this._templateHtml || !this._props) {
             return null;
         }
 
-        let htmlArray = template.split(/{{|}}/);
+        let htmlArray = this._templateHtml.split(/{{|}}/);
         let values = [];
         let newValues = [];
+        this._templateTags = [];
 
         //Uneven index = interpolation values
         for (let i = 0; i < htmlArray.length; i++) {
@@ -67,16 +35,17 @@ Layer.Core = class {
                 let val = htmlArray[i].replace(/ /g, "");
                 values.push(val);
                 newValues.push(val);
+                this._templateTags.push(val);
             }
         }
 
         //Match props values with markup placeholders
-        for (let property in props) {
-            if (props.hasOwnProperty(property)) {
+        for (let property in this._props) {
+            if (this._props.hasOwnProperty(property)) {
                 for (let i = 0; i < values.length; i++) {
                     try {
                         if (values[i].indexOf(property) !== -1) {
-                            values[i] = props[property];
+                            values[i] = this._props[property];
                         }
                     } catch (e) {
                         //May yield type error, but whatevs
@@ -104,80 +73,19 @@ Layer.Core = class {
         return htmlArray.join("");
     }
 
-    static resetProps(newProps, currentProps) {
-        if (!currentProps) {
+    resetProps(newProps) {        
+        if (!this._props) {
             return newProps;
         }
 
         for (let prop in newProps) {
-            if (currentProps.hasOwnProperty(prop)) {
-                currentProps[prop] = newProps[prop];
+            for (let tag of this._templateTags){
+                if(prop === tag){
+                    this._props[prop] = newProps[prop];
+                }
             }
         }
-        return currentProps;
-    }
-};
-
-/**
- * AJAX Static Methods
- * Component (internal) related AJAX Calls 
- * & Convinience (external) AJAX methdos 
- */
-
-Layer.HTTP = class {
-    constructor() {}
-
-    /**
-     * Private HTTP._GET() Takes component dependency injection
-     * to fetch component related data
-     */
-
-    static _GET(url, cb) {
-        jQuery.ajax({
-                url: url,
-                type: "GET",
-            })
-            .done(function(data, textStatus, jqXHR) {
-                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
-                if (jqXHR.responseJSON) {
-                    cb.setProps(jqXHR.responseJSON);
-                } else {
-                    cb.setHtml(data);
-                }
-            })
-            .fail(function(jqXHR, textStatus, errorThrown) {
-                Layer.logs.save("AJAX get error : " + errorThrown);
-            })
-            .always(function() {
-                /* ... */
-                Layer.logs.save("Executed AJAX get with url : " + url);
-            });
-    }
-
-    /**
-     * Public HTTP.GET() - manualy fetch data
-     * @param : url 
-     * @param : cb()
-     * return data & error in cb()
-     */
-
-    static GET(url, cb) {
-        jQuery.ajax({
-                url: url,
-                type: "GET",
-            })
-            .done(function(data, textStatus, jqXHR) {
-                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
-                return cb(data);
-            })
-            .fail(function(jqXHR, textStatus, errorThrown) {
-                Layer.logs.save("AJAX get error : " + errorThrown);
-                return errorThrown;
-            })
-            .always(function() {
-                /* ... */
-                Layer.logs.save("Executed AJAX get with url : " + url);
-            });
+        return this._props;
     }
 };
 
@@ -245,7 +153,7 @@ Layer.View = class View extends Layer.Core {
             Layer.HTTP._GET(this._endpoint, this);
         }
 
-        $(this._elements).html(Layer.Core.intpl(this._templateHtml, this._props) ? Layer.Core.intpl(this._templateHtml, this._props) : this._html);
+        $(this._elements).html(this.intpl() ? this.intpl() : this._html);
 
         if (typeof this._onUpdate === "function") {
             this._onUpdate();
@@ -323,7 +231,7 @@ Layer.View = class View extends Layer.Core {
     }
 
     setProps(newProps) {
-        this._props = Layer.Core.resetProps(newProps, this._props);
+        this._props = this.resetProps(newProps);
         this.update(true);
     }
 
@@ -349,3 +257,100 @@ Layer.View = class View extends Layer.Core {
         }
     }
 };
+
+/**
+ * AJAX Static Methods
+ * Component (internal) related AJAX Calls 
+ * & Convinience (external) AJAX methdos 
+ */
+
+Layer.HTTP = class {
+    constructor() {}
+
+    /**
+     * Private HTTP._GET() Takes component dependency injection
+     * to fetch component related data
+     */
+
+    static _GET(url, cb) {
+        jQuery.ajax({
+                url: url,
+                type: "GET",
+            })
+            .done(function(data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
+                if (jqXHR.responseJSON) {
+                    cb.setProps(jqXHR.responseJSON);
+                } else {
+                    cb.setHtml(data);
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Layer.logs.save("AJAX get error : " + errorThrown);
+            })
+            .always(function() {
+                /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
+            });
+    }
+
+    /**
+     * Public HTTP.GET() - manualy fetch data
+     * @param : url 
+     * @param : cb()
+     * return data & error in cb()
+     */
+
+    static GET(url, cb) {
+        jQuery.ajax({
+                url: url,
+                type: "GET",
+            })
+            .done(function(data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
+                return cb(data);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                Layer.logs.save("AJAX get error : " + errorThrown);
+                return errorThrown;
+            })
+            .always(function() {
+                /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
+            });
+    }
+};
+
+/**
+ * Logger Class 
+ * Store useful logs and errors
+ * Save logs : Layer.logs.save(log)
+ * Print stored logs : Layer.logs.print
+ * Dump log array : layer.logs.dump
+ */
+
+Layer.Logger = class {
+    constructor() {
+        this.logs = [];
+    }
+
+    get print() {
+        for (let log of this.logs) {
+            console.log("CVL:Log - " + log);
+        }
+    }
+
+    save(log) {
+        this.logs.push(log);
+    }
+
+    get dump() {
+        return this.logs;
+    }
+
+    delete() {
+        this.logs = [];
+    }
+};
+
+Layer.logs = new Layer.Logger();

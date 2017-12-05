@@ -19,91 +19,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Layer = window.Layer || {};
 
 /**
- * Logger Class 
- * Store useful logs and errors
- * Save logs : Layer.logs.save(log)
- * Print stored logs : Layer.logs.print
- * Dump log array : layer.logs.dump
- */
-
-Layer.Logger = function () {
-    function _class() {
-        _classCallCheck(this, _class);
-
-        this.logs = [];
-    }
-
-    _createClass(_class, [{
-        key: "save",
-        value: function save(log) {
-            this.logs.push(log);
-        }
-    }, {
-        key: "delete",
-        value: function _delete() {
-            this.logs = [];
-        }
-    }, {
-        key: "print",
-        get: function get() {
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
-
-            try {
-                for (var _iterator = this.logs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var log = _step.value;
-
-                    console.log("CVL:Log - " + log);
-                }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
-                        _iterator.return();
-                    }
-                } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
-                    }
-                }
-            }
-        }
-    }, {
-        key: "dump",
-        get: function get() {
-            return this.logs;
-        }
-    }]);
-
-    return _class;
-}();
-
-Layer.logs = new Layer.Logger();
-
-/**
- * Core Static Utility Functions
- * Core static intpl - parse Interpolation
+ * Core Class - Handles interpolation and props refresh/state
+ * Core intpl - parse Interpolation
  * Reconciliates component props with template markup 
+ * resetProps - matches template tags with new props
  */
 
 Layer.Core = function () {
-    function _class2() {
-        _classCallCheck(this, _class2);
+    function _class() {
+        _classCallCheck(this, _class);
     }
 
-    _createClass(_class2, null, [{
+    _createClass(_class, [{
         key: "intpl",
-        value: function intpl(template, props) {
-            if (!template || !props) {
+        value: function intpl() {
+            if (!this._templateHtml || !this._props) {
                 return null;
             }
 
-            var htmlArray = template.split(/{{|}}/);
+            var htmlArray = this._templateHtml.split(/{{|}}/);
             var values = [];
             var newValues = [];
+            this._templateTags = [];
 
             //Uneven index = interpolation values
             for (var i = 0; i < htmlArray.length; i++) {
@@ -111,16 +48,17 @@ Layer.Core = function () {
                     var val = htmlArray[i].replace(/ /g, "");
                     values.push(val);
                     newValues.push(val);
+                    this._templateTags.push(val);
                 }
             }
 
             //Match props values with markup placeholders
-            for (var property in props) {
-                if (props.hasOwnProperty(property)) {
+            for (var property in this._props) {
+                if (this._props.hasOwnProperty(property)) {
                     for (var _i = 0; _i < values.length; _i++) {
                         try {
                             if (values[_i].indexOf(property) !== -1) {
-                                values[_i] = props[property];
+                                values[_i] = this._props[property];
                             }
                         } catch (e) {
                             //May yield type error, but whatevs
@@ -149,87 +87,44 @@ Layer.Core = function () {
         }
     }, {
         key: "resetProps",
-        value: function resetProps(newProps, currentProps) {
-            if (!currentProps) {
+        value: function resetProps(newProps) {
+            if (!this._props) {
                 return newProps;
             }
 
             for (var prop in newProps) {
-                if (currentProps.hasOwnProperty(prop)) {
-                    currentProps[prop] = newProps[prop];
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = this._templateTags[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var tag = _step.value;
+
+                        if (prop === tag) {
+                            this._props[prop] = newProps[prop];
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
                 }
             }
-            return currentProps;
+            return this._props;
         }
     }]);
 
-    return _class2;
-}();
-
-/**
- * AJAX Static Methods
- * Component (internal) related AJAX Calls 
- * & Convinience (external) AJAX methdos 
- */
-
-Layer.HTTP = function () {
-    function _class3() {
-        _classCallCheck(this, _class3);
-    }
-
-    /**
-     * Private HTTP._GET() Takes component dependency injection
-     * to fetch component related data
-     */
-
-    _createClass(_class3, null, [{
-        key: "_GET",
-        value: function _GET(url, cb) {
-            jQuery.ajax({
-                url: url,
-                type: "GET"
-            }).done(function (data, textStatus, jqXHR) {
-                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
-                if (jqXHR.responseJSON) {
-                    cb.setProps(jqXHR.responseJSON);
-                } else {
-                    cb.setHtml(data);
-                }
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                Layer.logs.save("AJAX get error : " + errorThrown);
-            }).always(function () {
-                /* ... */
-                Layer.logs.save("Executed AJAX get with url : " + url);
-            });
-        }
-
-        /**
-         * Public HTTP.GET() - manualy fetch data
-         * @param : url 
-         * @param : cb()
-         * return data & error in cb()
-         */
-
-    }, {
-        key: "GET",
-        value: function GET(url, cb) {
-            jQuery.ajax({
-                url: url,
-                type: "GET"
-            }).done(function (data, textStatus, jqXHR) {
-                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
-                return cb(data);
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                Layer.logs.save("AJAX get error : " + errorThrown);
-                return errorThrown;
-            }).always(function () {
-                /* ... */
-                Layer.logs.save("Executed AJAX get with url : " + url);
-            });
-        }
-    }]);
-
-    return _class3;
+    return _class;
 }();
 
 /**
@@ -304,7 +199,7 @@ Layer.View = function (_Layer$Core) {
                 Layer.HTTP._GET(this._endpoint, this);
             }
 
-            $(this._elements).html(Layer.Core.intpl(this._templateHtml, this._props) ? Layer.Core.intpl(this._templateHtml, this._props) : this._html);
+            $(this._elements).html(this.intpl() ? this.intpl() : this._html);
 
             if (typeof this._onUpdate === "function") {
                 this._onUpdate();
@@ -364,7 +259,7 @@ Layer.View = function (_Layer$Core) {
     }, {
         key: "setProps",
         value: function setProps(newProps) {
-            this._props = Layer.Core.resetProps(newProps, this._props);
+            this._props = this.resetProps(newProps);
             this.update(true);
         }
     }, {
@@ -432,6 +327,138 @@ Layer.View = function (_Layer$Core) {
 
     return View;
 }(Layer.Core);
+
+/**
+ * AJAX Static Methods
+ * Component (internal) related AJAX Calls 
+ * & Convinience (external) AJAX methdos 
+ */
+
+Layer.HTTP = function () {
+    function _class2() {
+        _classCallCheck(this, _class2);
+    }
+
+    /**
+     * Private HTTP._GET() Takes component dependency injection
+     * to fetch component related data
+     */
+
+    _createClass(_class2, null, [{
+        key: "_GET",
+        value: function _GET(url, cb) {
+            jQuery.ajax({
+                url: url,
+                type: "GET"
+            }).done(function (data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
+                if (jqXHR.responseJSON) {
+                    cb.setProps(jqXHR.responseJSON);
+                } else {
+                    cb.setHtml(data);
+                }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                Layer.logs.save("AJAX get error : " + errorThrown);
+            }).always(function () {
+                /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
+            });
+        }
+
+        /**
+         * Public HTTP.GET() - manualy fetch data
+         * @param : url 
+         * @param : cb()
+         * return data & error in cb()
+         */
+
+    }, {
+        key: "GET",
+        value: function GET(url, cb) {
+            jQuery.ajax({
+                url: url,
+                type: "GET"
+            }).done(function (data, textStatus, jqXHR) {
+                Layer.logs.save("AJAX get done : " + jqXHR.statusText + " " + jqXHR.status);
+                return cb(data);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                Layer.logs.save("AJAX get error : " + errorThrown);
+                return errorThrown;
+            }).always(function () {
+                /* ... */
+                Layer.logs.save("Executed AJAX get with url : " + url);
+            });
+        }
+    }]);
+
+    return _class2;
+}();
+
+/**
+ * Logger Class 
+ * Store useful logs and errors
+ * Save logs : Layer.logs.save(log)
+ * Print stored logs : Layer.logs.print
+ * Dump log array : layer.logs.dump
+ */
+
+Layer.Logger = function () {
+    function _class3() {
+        _classCallCheck(this, _class3);
+
+        this.logs = [];
+    }
+
+    _createClass(_class3, [{
+        key: "save",
+        value: function save(log) {
+            this.logs.push(log);
+        }
+    }, {
+        key: "delete",
+        value: function _delete() {
+            this.logs = [];
+        }
+    }, {
+        key: "print",
+        get: function get() {
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = this.logs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var log = _step2.value;
+
+                    console.log("CVL:Log - " + log);
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "dump",
+        get: function get() {
+            return this.logs;
+        }
+    }]);
+
+    return _class3;
+}();
+
+Layer.logs = new Layer.Logger();
+
 /******
  * CVL - Usage Sample
  * MIT License
