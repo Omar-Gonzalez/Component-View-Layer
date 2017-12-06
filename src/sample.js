@@ -143,3 +143,7 @@ let foot = new Layer.View({
         </div>`,
     sel:'.foot'
 });
+
+let cats = ["ema","gala","yoko"];
+
+let newCats = cats;

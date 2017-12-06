@@ -19,7 +19,7 @@ Layer.Core = class {
 
     constructor() {}
 
-    intpl() {
+    get intpl() {
         if (!this._templateHtml || !this._props) {
             return null;
         }
@@ -153,7 +153,7 @@ Layer.View = class View extends Layer.Core {
             Layer.HTTP._GET(this._endpoint, this);
         }
 
-        $(this._elements).html(this.intpl() ? this.intpl() : this._html);
+        $(this._elements).html(this.intpl ? this.intpl : this._html);
 
         if (typeof this._onUpdate === "function") {
             this._onUpdate();

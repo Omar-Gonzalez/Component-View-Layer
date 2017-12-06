@@ -31,8 +31,45 @@ Layer.Core = function () {
     }
 
     _createClass(_class, [{
+        key: "resetProps",
+        value: function resetProps(newProps) {
+            if (!this._props) {
+                return newProps;
+            }
+
+            for (var prop in newProps) {
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = this._templateTags[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var tag = _step.value;
+
+                        if (prop === tag) {
+                            this._props[prop] = newProps[prop];
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+            }
+            return this._props;
+        }
+    }, {
         key: "intpl",
-        value: function intpl() {
+        get: function get() {
             if (!this._templateHtml || !this._props) {
                 return null;
             }
@@ -84,43 +121,6 @@ Layer.Core = function () {
             }
 
             return htmlArray.join("");
-        }
-    }, {
-        key: "resetProps",
-        value: function resetProps(newProps) {
-            if (!this._props) {
-                return newProps;
-            }
-
-            for (var prop in newProps) {
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                    for (var _iterator = this._templateTags[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        var tag = _step.value;
-
-                        if (prop === tag) {
-                            this._props[prop] = newProps[prop];
-                        }
-                    }
-                } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion && _iterator.return) {
-                            _iterator.return();
-                        }
-                    } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
-                        }
-                    }
-                }
-            }
-            return this._props;
         }
     }]);
 
@@ -199,7 +199,7 @@ Layer.View = function (_Layer$Core) {
                 Layer.HTTP._GET(this._endpoint, this);
             }
 
-            $(this._elements).html(this.intpl() ? this.intpl() : this._html);
+            $(this._elements).html(this.intpl ? this.intpl : this._html);
 
             if (typeof this._onUpdate === "function") {
                 this._onUpdate();
@@ -528,4 +528,8 @@ var foot = new Layer.View({
     html: "<div class=\"container\">\n            <div class=\"row\">\n                <hr>\n                <p> Component View Layer, MIT License * Copyright (c) 2017 <a href=\"https://github.com/Omar-Gonzalez\">Omar Gonzalez</a></p><br>\n            </div>\n        </div>",
     sel: '.foot'
 });
+
+var cats = ["ema", "gala", "yoko"];
+
+var newCats = cats;
 //# sourceMappingURL=cvl.build.js.map
